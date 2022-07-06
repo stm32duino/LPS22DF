@@ -39,9 +39,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Spell check
-        uses: arduino/actions/libraries/spell-check@master
+        uses: codespell-project/actions-codespell@master
         with:
-          ignore-words-list: ./extras/codespell-ignore-words-list.txt
+          ignore_words_file: ./extras/codespell-ignore-words-list.txt
   lib_build:
     runs-on: ubuntu-latest
     name: Library compilation
@@ -55,7 +55,7 @@ jobs:
       id: compile
       uses: stm32duino/actions/compile-examples@main
       with:
-        board-pattern: "NUCLEO_L476RG|B_U585I_IOT02A"
+        board-pattern: "NUCLEO_L476RG"
 
     # Use the output from the `Compilation` step
     - name: Compilation Errors
