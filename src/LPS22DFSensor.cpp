@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file    LPS22DFSensor.cpp
  * @author  SRA
- * @version V1.0.0
+ * @version V1.0.1
  * @date    July 2022
  * @brief   Implementation of a LPS22DF pressure sensor.
  ******************************************************************************
