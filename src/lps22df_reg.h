@@ -99,6 +99,13 @@ typedef struct {
 #define PROPERTY_DISABLE                (0U)
 #define PROPERTY_ENABLE                 (1U)
 
+#endif /* MEMS_SHARED_TYPES */
+
+/**
+  * @}
+  *
+  */
+
 /** @addtogroup  Interfaces_Functions
   * @brief       This section provide a set of functions used to read and
   *              write a generic register of the device.
@@ -122,8 +129,6 @@ typedef struct {
   * @}
   *
   */
-
-#endif /* MEMS_SHARED_TYPES */
 
 #ifndef MEMS_UCF_SHARED_TYPES
 #define MEMS_UCF_SHARED_TYPES
@@ -150,11 +155,6 @@ typedef struct {
   */
 
 #endif /* MEMS_UCF_SHARED_TYPES */
-
-/**
-  * @}
-  *
-  */
 
 /** @defgroup LPS22DF_Infos
   * @{

@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    LPS22DFSensor.cpp
  * @author  SRA
- * @version V1.0.0
+ * @version V1.0.1
  * @date    July 2022
  * @brief   Implementation of a LPS22DF pressure sensor.
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2019 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2022 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:

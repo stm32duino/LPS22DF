@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file    LPS22DFSensor.h
  * @author  SRA
- * @version V1.0.0
+ * @version V1.0.1
  * @date    July 2022
  * @brief   Abstract Class of a LPS22DF pressure sensor.
  ******************************************************************************

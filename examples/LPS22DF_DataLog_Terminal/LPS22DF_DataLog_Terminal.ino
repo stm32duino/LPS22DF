@@ -1,5 +1,5 @@
 /*
-   @file    LPS22DF_Example.ino
+   @file    LPS22DF_DataLog_Terminal.ino
    @author  Giuseppe Roberti <giuseppe.roberti@ieee.org>
    @brief   Example to use the LPS22DF 260-1260 hPa absolute digital
             output barometer
