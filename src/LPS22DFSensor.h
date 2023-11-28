@@ -43,6 +43,12 @@
 
 
 /* Includes ------------------------------------------------------------------*/
+/* For compatibility with ESP32 platforms */
+#ifdef ESP32
+  #ifndef MSBFIRST
+    #define MSBFIRST SPI_MSBFIRST
+  #endif
+#endif
 
 #include "Wire.h"
 #include "SPI.h"
