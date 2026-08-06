@@ -121,12 +121,12 @@ class LPS22DFSensor {
     LPS22DFStatusTypeDef Set_One_Shot();
     LPS22DFStatusTypeDef Get_One_Shot_Status(uint8_t *Status);
 
-    LPS22DFStatusTypeDef ConfigureDataReadyOnI3cIbi();
-    LPS22DFStatusTypeDef EnableIbiOnBus(uint8_t targetIndex = 1,
-                                        uint32_t timeoutMs = 1000,
-                                        bool withPayload = true);
+    LPS22DFStatusTypeDef set_address(uint8_t dynAddr7);
 
-    void set_address(uint8_t dynAddr7);
+#if defined(I3C_SUPPORTED)
+    uint8_t getStaticAddress() const;
+    uint8_t getDynAddress()    const;
+#endif
 
     /**
      * @brief Utility function to read data.

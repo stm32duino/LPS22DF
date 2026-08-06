@@ -2,8 +2,8 @@
  ******************************************************************************
  * @file    LPS22DFSensor.cpp
  * @author  SRA
- * @version V1.0.1
- * @date    July 2022
+ * @version V1.1.0
+ * @date    July 2026
  * @brief   Implementation of a LPS22DF pressure sensor.
  ******************************************************************************
  * @attention
@@ -92,10 +92,16 @@ LPS22DFSensor::LPS22DFSensor(I3CBus *i3c, uint8_t staticAddr7, uint8_t dynAddr7)
   bus_type = LPS22DF_I3C_BUS;
 }
 
-void LPS22DFSensor::set_address(uint8_t dynAddr7)
+LPS22DFStatusTypeDef LPS22DFSensor::set_address(uint8_t dynAddr7)
 {
+  if (initialized) { return LPS22DF_ERROR; }
   address = dynAddr7;
+  i3c_dyn7 = dynAddr7;
+  return LPS22DF_OK;
 }
+
+uint8_t LPS22DFSensor::getStaticAddress() const { return i3c_static7; }
+uint8_t LPS22DFSensor::getDynAddress()    const { return i3c_dyn7; }
 #endif
 
 /**
@@ -115,40 +121,13 @@ LPS22DFStatusTypeDef LPS22DFSensor::begin()
 
 #if defined(I3C_SUPPORTED)
   if (dev_i3c != nullptr) {
-    Serial.println("I3C");
-
-    bool doAutoSetdasa = (i3c_static7 != 0) && (i3c_dyn7 != 0);
-
-    if (doAutoSetdasa) {
-      dev_i3c->setClock(1000000);  // 1 MHz mixte I3C+I2C
-
-      if (!dev_i3c->assignDynamicAddress(i3c_static7, i3c_dyn7)) {
-        Serial.println("I3C: SETDASA failed");
-        return LPS22DF_ERROR;
-      }
-
-      address = i3c_dyn7;
-
-      uint8_t id = 0;
-      if (ReadID(&id) != LPS22DF_OK || id != LPS22DF_ID) {
-        Serial.print("I3C: probe failed after SETDASA, id=0x");
-        Serial.println(id, HEX);
-        return LPS22DF_ERROR;
-      }
-
-      Serial.println("I3C: dynamic address and WHO_AM_I OK");
-    } else {
-
-      uint8_t id = 0;
-      if (ReadID(&id) != LPS22DF_OK || id != LPS22DF_ID) {
-        Serial.print("I3C: manual mode: WHO_AM_I failed, id=0x");
-        Serial.println(id, HEX);
-        return LPS22DF_ERROR;
-      }
-      Serial.println("I3C: manual mode, WHO_AM_I OK at address 0x");
-      Serial.println(address, HEX);
+    if (address < 0x08 || address > 0x77) {
+      return LPS22DF_ERROR;
     }
-    dev_i3c->setClock(12500000);
+    uint8_t id = 0;
+    if (ReadID(&id) != LPS22DF_OK || id != LPS22DF_ID) {
+      return LPS22DF_ERROR;
+    }
   }
 #endif
 
@@ -173,9 +152,6 @@ LPS22DFStatusTypeDef LPS22DFSensor::begin()
   }
 
   bus_mode.filter = lps22df_bus_mode_t::LPS22DF_AUTO;
-#if defined(I3C_SUPPORTED)
-  bus_mode.i3c_ibi_time = lps22df_bus_mode_t::LPS22DF_IBI_1ms;
-#endif
 
   if (lps22df_bus_mode_set(&reg_ctx, &bus_mode) != LPS22DF_OK) {
     return LPS22DF_ERROR;
@@ -578,40 +554,3 @@ int32_t LPS22DF_io_read(void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16
   return ((LPS22DFSensor *)handle)->IO_Read(pBuffer, ReadAddr, nBytesToRead);
 }
 
-#if defined(I3C_SUPPORTED)
-LPS22DFStatusTypeDef LPS22DFSensor::ConfigureDataReadyOnI3cIbi()
-{
-  if (dev_i3c == nullptr) {
-    return LPS22DF_ERROR;
-  }
-
-  if (Write_Reg(LPS22DF_IF_CTRL, 0x80) != LPS22DF_OK) {
-    return LPS22DF_ERROR;
-  }
-
-  if (Write_Reg(LPS22DF_CTRL_REG4, 0x30) != LPS22DF_OK) {
-    return LPS22DF_ERROR;
-  }
-
-  return LPS22DF_OK;
-}
-
-LPS22DFStatusTypeDef LPS22DFSensor::EnableIbiOnBus(uint8_t targetIndex,
-                                                   uint32_t timeoutMs,
-                                                   bool withPayload)
-{
-  if (dev_i3c == nullptr) {
-    return LPS22DF_ERROR;
-  }
-
-  if (dev_i3c->enableIbi(targetIndex, address, withPayload, false, timeoutMs) != 0) {
-    return LPS22DF_ERROR;
-  }
-
-  if (dev_i3c->enableControllerEvents() != 0) {
-    return LPS22DF_ERROR;
-  }
-
-  return LPS22DF_OK;
-}
-#endif

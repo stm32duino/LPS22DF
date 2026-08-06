@@ -1,7 +1,22 @@
-#include "I3C.h"
+/*
+   @file    LPS22DF_I3C_DynAddrAssign.ino
+   @author  STMicroelectronics
+   @brief   Example to use the LPS22DF pressure sensor with I3C dynamic address assignment
+ *******************************************************************************
+   Copyright (c) 2026, STMicroelectronics
+   All rights reserved.
+
+   This software component is licensed by ST under BSD 3-Clause license,
+   the "License"; You may not use this file except in compliance with the
+   License. You may obtain a copy of the License at:
+                          opensource.org/licenses/BSD-3-Clause
+
+ *******************************************************************************
+*/
+
 #include "LPS22DFSensor.h"
 
-LPS22DFSensor sensor(&I3C, 0x00);
+LPS22DFSensor sensor(&I3C);
 
 void setup() {
   Serial.begin(115200);
@@ -33,15 +48,23 @@ void setup() {
     }
   }
 
-  sensor.set_address(lpsDynAddr);
-
   if (lpsDynAddr == 0U) {
-    Serial.println("Sensor not found failed");
+    Serial.println("Sensor not found");
+    while (1) {}
+  }
+
+  if (sensor.set_address(lpsDynAddr) != LPS22DF_OK) {
+    Serial.println("set_address() failed");
     while (1) {}
   }
 
   if (sensor.begin() != LPS22DF_OK) {
     Serial.println("sensor.begin() failed");
+    while (1) {}
+  }
+
+  if (!I3C.setClock(12500000)) {
+    Serial.println("setClock() failed");
     while (1) {}
   }
 

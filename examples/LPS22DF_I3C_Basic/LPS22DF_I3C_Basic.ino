@@ -1,9 +1,21 @@
-#include "I3C.h"
+/*
+   @file    LPS22DF_I3C_Basic.ino
+   @author  STMicroelectronics
+   @brief   Example to use the LPS22DF pressure sensor with I3C and SETDASA command
+ *******************************************************************************
+   Copyright (c) 2026, STMicroelectronics
+   All rights reserved.
+
+   This software component is licensed by ST under BSD 3-Clause license,
+   the "License"; You may not use this file except in compliance with the
+   License. You may obtain a copy of the License at:
+                          opensource.org/licenses/BSD-3-Clause
+
+ *******************************************************************************
+*/
 #include "LPS22DFSensor.h"
 
-static const uint8_t LPS22DF_DYN_ADDR = 0x30;
-
-LPS22DFSensor sensor(&I3C, LPS22DF_I3C_ADD_H, LPS22DF_DYN_ADDR);
+LPS22DFSensor sensor(&I3C, LPS22DF_I3C_ADD_H, 0x30);
 
 void setup() {
   Serial.begin(115200);
@@ -22,8 +34,18 @@ void setup() {
     while (1) {}
   }
 
+  if (!I3C.assignDynamicAddress(sensor.getStaticAddress(), sensor.getDynAddress())) {
+    Serial.println("assignDynamicAddress() failed");
+    while (1) {}
+  }
+
   if (sensor.begin() != LPS22DF_OK) {
     Serial.println("sensor.begin() failed");
+    while (1) {}
+  }
+
+  if (!I3C.setClock(12500000)) {
+    Serial.println("setClock() failed");
     while (1) {}
   }
 
