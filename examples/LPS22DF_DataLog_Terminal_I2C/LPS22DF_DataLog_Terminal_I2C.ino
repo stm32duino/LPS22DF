@@ -1,8 +1,8 @@
 /*
-   @file    LPS22DF_DataLog_Terminal.ino
+   @file    LPS22DF_DataLog_Terminal_I2C.ino
    @author  Giuseppe Roberti <giuseppe.roberti@ieee.org>
    @brief   Example to use the LPS22DF 260-1260 hPa absolute digital
-            output barometer
+            output barometer with I2C bus
  *******************************************************************************
    Copyright (c) 2022, STMicroelectronics
    All rights reserved.
@@ -15,18 +15,21 @@
 
 #include <LPS22DFSensor.h>
 
-LPS22DFSensor sensor (&Wire);
+LPS22DFSensor sensor(&Wire);
 float pressure, temperature;
 
-void setup() {
+void setup()
+{
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
   Wire.begin();
   sensor.begin();
   sensor.Enable();
+  Serial.println("LPS22DF ready");
 }
 
-void loop() {
+void loop()
+{
   sensor.GetPressure(&pressure);
   sensor.GetTemperature(&temperature);
 
@@ -38,7 +41,8 @@ void loop() {
   blink(LED_BUILTIN);
 }
 
-inline void blink(int pin) {
+inline void blink(int pin)
+{
   digitalWrite(pin, HIGH);
   delay(25);
   digitalWrite(pin, LOW);

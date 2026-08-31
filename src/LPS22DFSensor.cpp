@@ -2,8 +2,8 @@
  ******************************************************************************
  * @file    LPS22DFSensor.cpp
  * @author  SRA
- * @version V1.0.1
- * @date    July 2022
+ * @version V1.1.0
+ * @date    July 2026
  * @brief   Implementation of a LPS22DF pressure sensor.
  ******************************************************************************
  * @attention
@@ -53,6 +53,9 @@ LPS22DFSensor::LPS22DFSensor(TwoWire *i2c, uint8_t address) : dev_i2c(i2c), addr
   reg_ctx.read_reg = LPS22DF_io_read;
   reg_ctx.handle = (void *)this;
   dev_spi = NULL;
+#if defined(I3C_SUPPORTED)
+  dev_i3c = NULL;
+#endif
   enabled = 0L;
 }
 
@@ -67,15 +70,49 @@ LPS22DFSensor::LPS22DFSensor(SPIClass *spi, int cs_pin, uint32_t spi_speed) : de
   reg_ctx.read_reg = LPS22DF_io_read;
   reg_ctx.handle = (void *)this;
   dev_i2c = NULL;
+#if defined(I3C_SUPPORTED)
+  dev_i3c = NULL;
+#endif
   address = 0L;
   enabled = 0L;
 }
+
+#if defined(I3C_SUPPORTED)
+LPS22DFSensor::LPS22DFSensor(I3CBus *i3c, uint8_t static_addr7)
+{
+  reg_ctx.write_reg = LPS22DF_io_write;
+  reg_ctx.read_reg  = LPS22DF_io_read;
+  reg_ctx.handle    = (void *)this;
+
+  dev_i2c = NULL;
+  dev_spi = NULL;
+  dev_i3c = i3c;
+
+  address = static_addr7;
+  i3c_static7  = static_addr7;
+  i3c_dyn7     = 0;
+
+  enabled     = 0U;
+  initialized = 0U;
+
+  bus_type = LPS22DF_I3C_BUS;
+}
+
+uint8_t LPS22DFSensor::getStaticAddress() const
+{
+  return i3c_static7;
+}
+uint8_t LPS22DFSensor::getDynAddress()    const
+{
+  return i3c_dyn7;
+}
+#endif
 
 /**
  * @brief  Configure the sensor in order to be used
  * @retval 0 in case of success, an error code otherwise
  */
-LPS22DFStatusTypeDef LPS22DFSensor::begin()
+LPS22DFStatusTypeDef LPS22DFSensor::begin(uint8_t new_address)
 {
   lps22df_md_t md;
   lps22df_bus_mode_t bus_mode;
@@ -86,21 +123,43 @@ LPS22DFStatusTypeDef LPS22DFSensor::begin()
     digitalWrite(cs_pin, HIGH);
   }
 
+#if defined(I3C_SUPPORTED)
+  if (dev_i3c != nullptr) {
+    if (new_address < 0x08 || new_address > 0x77) {
+      return LPS22DF_ERROR;
+    } else {
+      address = new_address;
+      i3c_dyn7 = new_address;
+    }
+    uint8_t id = 0;
+    if (ReadID(&id) != LPS22DF_OK || id != LPS22DF_ID) {
+      return LPS22DF_ERROR;
+    }
+  }
+#endif
+
   /* Set bdu and if_inc recommended for driver usage */
   if (lps22df_init_set(&reg_ctx, LPS22DF_DRV_RDY) != LPS22DF_OK) {
     return LPS22DF_ERROR;
   }
 
   /* Select bus interface */
-  if (bus_type == LPS22DF_SPI_3WIRES_BUS) { /* SPI 3-Wires */
+  if (bus_type == LPS22DF_SPI_3WIRES_BUS) {
     bus_mode.interface = lps22df_bus_mode_t::LPS22DF_SPI_3W;
-  } else if (bus_type == LPS22DF_SPI_4WIRES_BUS) { /* SPI 3-Wires */
+  } else if (bus_type == LPS22DF_SPI_4WIRES_BUS) {
     bus_mode.interface = lps22df_bus_mode_t::LPS22DF_SPI_4W;
-  } else {
+  }
+#if defined(I3C_SUPPORTED)
+  else if (bus_type == LPS22DF_I3C_BUS) {
+    bus_mode.interface = lps22df_bus_mode_t::LPS22DF_INT_PIN_ON_I3C;
+  }
+#endif
+  else {
     bus_mode.interface = lps22df_bus_mode_t::LPS22DF_SEL_BY_HW;
   }
 
   bus_mode.filter = lps22df_bus_mode_t::LPS22DF_AUTO;
+
   if (lps22df_bus_mode_set(&reg_ctx, &bus_mode) != LPS22DF_OK) {
     return LPS22DF_ERROR;
   }
@@ -501,3 +560,4 @@ int32_t LPS22DF_io_read(void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16
 {
   return ((LPS22DFSensor *)handle)->IO_Read(pBuffer, ReadAddr, nBytesToRead);
 }
+

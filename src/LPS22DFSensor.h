@@ -41,6 +41,10 @@
 #ifndef __LPS22DFSensor_H__
 #define __LPS22DFSensor_H__
 
+/* Core compatibility --------------------------------------------------------*/
+#if defined(STM32_CORE_VERSION) && (STM32_CORE_VERSION  <= 0x020C0000)
+  #error "This library is not compatible with core version used. Please update the core."
+#endif
 
 /* Includes ------------------------------------------------------------------*/
 /* For compatibility with ESP32 platforms */
@@ -54,13 +58,27 @@
 #include "SPI.h"
 #include "lps22df_reg.h"
 
+#if (defined(I3C1_BASE) || defined(I3C2_BASE)) && !defined(I3C_SUPPORTED)
+  #define I3C_SUPPORTED
+  #include "I3C.h"
+#endif
 
 /* Defines -------------------------------------------------------------------*/
 
 #define LPS22DF_I2C_BUS          0U
 #define LPS22DF_SPI_4WIRES_BUS   1U
 #define LPS22DF_SPI_3WIRES_BUS   2U
+#if defined(I3C_SUPPORTED)
+  #define LPS22DF_I3C_BUS          3U
 
+  /** I3C/I2C Device Static Address 7 bit format  if SA0=0 -> 0x5C if SA0=1 -> 0x5D **/
+  #define LPS22DF_I3C_ADD_L               0x5CU
+  #define LPS22DF_I3C_ADD_H               0x5DU
+
+  /** I3C/I2C Device PID**/
+  static const uint64_t LPS22DF_I3C_PID_L = 0x020800B4100BULL;
+  static const uint64_t LPS22DF_I3C_PID_H = 0x020800B4900BULL;
+#endif
 
 /* Typedefs ------------------------------------------------------------------*/
 
@@ -79,8 +97,11 @@ class LPS22DFSensor {
   public:
     LPS22DFSensor(TwoWire *i2c, uint8_t address = LPS22DF_I2C_ADD_H);
     LPS22DFSensor(SPIClass *spi, int cs_pin, uint32_t spi_speed = 2000000);
+#if defined(I3C_SUPPORTED)
+    LPS22DFSensor(I3CBus *i3c, uint8_t static_addr7 = 0);
+#endif
 
-    LPS22DFStatusTypeDef begin();
+    LPS22DFStatusTypeDef begin(uint8_t new_address = 0);
     LPS22DFStatusTypeDef end();
     LPS22DFStatusTypeDef ReadID(uint8_t *Id);
     LPS22DFStatusTypeDef Enable();
@@ -99,6 +120,11 @@ class LPS22DFSensor {
 
     LPS22DFStatusTypeDef Set_One_Shot();
     LPS22DFStatusTypeDef Get_One_Shot_Status(uint8_t *Status);
+
+#if defined(I3C_SUPPORTED)
+    uint8_t getStaticAddress() const;
+    uint8_t getDynAddress()    const;
+#endif
 
     /**
      * @brief Utility function to read data.
@@ -144,6 +170,14 @@ class LPS22DFSensor {
         return 0;
       }
 
+#if defined(I3C_SUPPORTED)
+      if (dev_i3c) {
+        if (dev_i3c->readRegBuffer(address, RegisterAddr, pBuffer, NumByteToRead) == 0) {
+          return 0;
+        }
+      }
+#endif
+
       return 1;
     }
 
@@ -188,6 +222,15 @@ class LPS22DFSensor {
         return 0;
       }
 
+#if defined(I3C_SUPPORTED)
+      if (dev_i3c) {
+        if (dev_i3c->writeRegBuffer(address, RegisterAddr, pBuffer, NumByteToWrite) == 0) {
+          return 0;
+        }
+        return 1;
+      }
+#endif
+
       return 1;
     }
 
@@ -198,6 +241,9 @@ class LPS22DFSensor {
     /* Helper classes. */
     TwoWire  *dev_i2c;
     SPIClass *dev_spi;
+#if defined(I3C_SUPPORTED)
+    I3CBus   *dev_i3c;
+#endif
 
     uint32_t     bus_type; /*0 means I2C, 1 means SPI 4-Wires, 2 means SPI-3-Wires */
     uint8_t      initialized;
@@ -208,6 +254,11 @@ class LPS22DFSensor {
     uint8_t  address;
     int      cs_pin;
     uint32_t spi_speed;
+
+#if defined(I3C_SUPPORTED)
+    uint8_t  i3c_static7;
+    uint8_t  i3c_dyn7;
+#endif
 
     lps22df_ctx_t reg_ctx;
 };
