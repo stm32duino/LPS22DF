@@ -53,6 +53,9 @@ LPS22DFSensor::LPS22DFSensor(TwoWire *i2c, uint8_t address) : dev_i2c(i2c), addr
   reg_ctx.read_reg = LPS22DF_io_read;
   reg_ctx.handle = (void *)this;
   dev_spi = NULL;
+#if defined(I3C_SUPPORTED)
+  dev_i3c = NULL;
+#endif
   enabled = 0L;
 }
 
@@ -67,12 +70,15 @@ LPS22DFSensor::LPS22DFSensor(SPIClass *spi, int cs_pin, uint32_t spi_speed) : de
   reg_ctx.read_reg = LPS22DF_io_read;
   reg_ctx.handle = (void *)this;
   dev_i2c = NULL;
+#if defined(I3C_SUPPORTED)
+  dev_i3c = NULL;
+#endif
   address = 0L;
   enabled = 0L;
 }
 
 #if defined(I3C_SUPPORTED)
-LPS22DFSensor::LPS22DFSensor(I3CBus *i3c, uint8_t staticAddr7, uint8_t dynAddr7)
+LPS22DFSensor::LPS22DFSensor(I3CBus *i3c, uint8_t static_addr7)
 {
   reg_ctx.write_reg = LPS22DF_io_write;
   reg_ctx.read_reg  = LPS22DF_io_read;
@@ -82,9 +88,9 @@ LPS22DFSensor::LPS22DFSensor(I3CBus *i3c, uint8_t staticAddr7, uint8_t dynAddr7)
   dev_spi = NULL;
   dev_i3c = i3c;
 
-  address = (dynAddr7 != 0) ? dynAddr7 : staticAddr7;
-  i3c_static7  = staticAddr7;
-  i3c_dyn7     = dynAddr7;
+  address = static_addr7;
+  i3c_static7  = static_addr7;
+  i3c_dyn7     = 0;
 
   enabled     = 0U;
   initialized = 0U;
@@ -92,23 +98,21 @@ LPS22DFSensor::LPS22DFSensor(I3CBus *i3c, uint8_t staticAddr7, uint8_t dynAddr7)
   bus_type = LPS22DF_I3C_BUS;
 }
 
-LPS22DFStatusTypeDef LPS22DFSensor::set_address(uint8_t dynAddr7)
+uint8_t LPS22DFSensor::getStaticAddress() const
 {
-  if (initialized) { return LPS22DF_ERROR; }
-  address = dynAddr7;
-  i3c_dyn7 = dynAddr7;
-  return LPS22DF_OK;
+  return i3c_static7;
 }
-
-uint8_t LPS22DFSensor::getStaticAddress() const { return i3c_static7; }
-uint8_t LPS22DFSensor::getDynAddress()    const { return i3c_dyn7; }
+uint8_t LPS22DFSensor::getDynAddress()    const
+{
+  return i3c_dyn7;
+}
 #endif
 
 /**
  * @brief  Configure the sensor in order to be used
  * @retval 0 in case of success, an error code otherwise
  */
-LPS22DFStatusTypeDef LPS22DFSensor::begin()
+LPS22DFStatusTypeDef LPS22DFSensor::begin(uint8_t new_address)
 {
   lps22df_md_t md;
   lps22df_bus_mode_t bus_mode;
@@ -121,8 +125,11 @@ LPS22DFStatusTypeDef LPS22DFSensor::begin()
 
 #if defined(I3C_SUPPORTED)
   if (dev_i3c != nullptr) {
-    if (address < 0x08 || address > 0x77) {
+    if (new_address < 0x08 || new_address > 0x77) {
       return LPS22DF_ERROR;
+    } else {
+      address = new_address;
+      i3c_dyn7 = new_address;
     }
     uint8_t id = 0;
     if (ReadID(&id) != LPS22DF_OK || id != LPS22DF_ID) {

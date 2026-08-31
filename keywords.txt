@@ -27,7 +27,6 @@ Read_Reg	KEYWORD2
 Write_Reg	KEYWORD2
 Set_One_Shot	KEYWORD2
 Get_One_Shot_Status	KEYWORD2
-set_address	KEYWORD2
 getStaticAddress	KEYWORD2
 getDynAddress	KEYWORD2
 

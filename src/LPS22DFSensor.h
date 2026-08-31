@@ -98,10 +98,10 @@ class LPS22DFSensor {
     LPS22DFSensor(TwoWire *i2c, uint8_t address = LPS22DF_I2C_ADD_H);
     LPS22DFSensor(SPIClass *spi, int cs_pin, uint32_t spi_speed = 2000000);
 #if defined(I3C_SUPPORTED)
-    LPS22DFSensor(I3CBus *i3c, uint8_t staticAddr7 = 0, uint8_t dynAddr7 = 0);
+    LPS22DFSensor(I3CBus *i3c, uint8_t static_addr7 = 0);
 #endif
 
-    LPS22DFStatusTypeDef begin();
+    LPS22DFStatusTypeDef begin(uint8_t new_address = 0);
     LPS22DFStatusTypeDef end();
     LPS22DFStatusTypeDef ReadID(uint8_t *Id);
     LPS22DFStatusTypeDef Enable();
@@ -120,8 +120,6 @@ class LPS22DFSensor {
 
     LPS22DFStatusTypeDef Set_One_Shot();
     LPS22DFStatusTypeDef Get_One_Shot_Status(uint8_t *Status);
-
-    LPS22DFStatusTypeDef set_address(uint8_t dynAddr7);
 
 #if defined(I3C_SUPPORTED)
     uint8_t getStaticAddress() const;

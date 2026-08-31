@@ -29,11 +29,11 @@ An instance can be created and enabled when the SPI bus is used following the pr
 
 An instance can be created and enabled when the I3C bus is used with SETDASA (static-to-dynamic address assignment):  
 
-    LPS22DFSensor PressTemp(&I3C, LPS22DF_I3C_ADD_H, 0x30);
+    LPS22DFSensor PressTemp(&I3C, LPS22DF_I3C_ADD_H);
     I3C.begin(I3C_SDA, I3C_SCL, 1000000U);
     I3C.resetDynamicAddresses();
-    I3C.assignDynamicAddress(PressTemp.getStaticAddress(), PressTemp.getDynAddress());
-    PressTemp.begin();
+    I3C.assignDynamicAddress(PressTemp.getStaticAddress(), LPS22DF_DYNAMIC_ADDRESS);
+    PressTemp.begin(LPS22DF_DYNAMIC_ADDRESS);
     I3C.setClock(12500000);
     PressTemp.Enable();
 
@@ -43,8 +43,7 @@ An instance can be created and enabled when the I3C bus is used with ENTDAA (dyn
     I3C.begin(I3C_SDA, I3C_SCL, 1000000U);
     I3C.discover(devices, 8, &found);
     // find dynAddr by matching LPS22DF_I3C_PID_H in discovered devices
-    PressTemp.set_address(dynAddr);
-    PressTemp.begin();
+    PressTemp.begin(dynAddr);
     I3C.setClock(12500000);
     PressTemp.Enable();
 
