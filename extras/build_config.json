@@ -11,13 +11,17 @@
           "applicable": true,
           "boards": [
             "NUCLEO_L476RG",
-            "NUCLEO_H503RB"
+            "NUCLEO_H503RB",
+            "NUCLEO_C562RE"
           ]
         },
         {
           "pattern": "I3C",
           "applicable": true,
-          "boards": [ "NUCLEO_H503RB"]
+          "boards": [
+            "NUCLEO_H503RB",
+            "NUCLEO_C562RE"
+          ]
         }
       ]
     }
