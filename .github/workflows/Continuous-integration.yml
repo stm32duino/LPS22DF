@@ -60,7 +60,7 @@ jobs:
       uses: stm32duino/actions/compile-examples@main
       with:
         custom-config: "./extras/build_config.json"
-        board-pattern: "NUCLEO_L476RG|NUCLEO_H503RB"
+        board-pattern: "NUCLEO_L476RG|NUCLEO_H503RB|NUCLEO_C562RE"
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     # Use the output from the `Compilation` step
